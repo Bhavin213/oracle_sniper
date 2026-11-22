@@ -115,6 +115,10 @@ AVAILABILITY_DOMAIN = env("OCI_AVAILABILITY_DOMAIN")  # auto-detected if empty
 SHAPE = env("SHAPE", "VM.Standard.A1.Flex")
 # Tried in order on every attempt: biggest free size first, then smaller ones.
 SHAPE_CONFIGS = parse_shapes(env("SHAPE_CONFIGS", "4:24,2:12,1:6"))
+# Fixed shapes (e.g. VM.Standard.E2.1.Micro) take no size; try them once per attempt.
+IS_FLEX = SHAPE.endswith(".Flex")
+if not IS_FLEX:
+    SHAPE_CONFIGS = [(0, 0)]
 BOOT_VOLUME_GB = int(env("BOOT_VOLUME_GB", "100"))
 DISPLAY_NAME = env("DISPLAY_NAME", "free-arm-server")
 OS_NAME = env("OS_NAME", "Canonical Ubuntu")
@@ -266,7 +270,7 @@ def run():
     ad = pick_availability_domain(identity)
     subnet_id = pick_subnet(network)
     image_id = pick_image(compute)
-    sizes = ", ".join(f"{o:g} OCPU/{m:g} GB" for o, m in SHAPE_CONFIGS)
+    sizes = ", ".join(f"{o:g} OCPU/{m:g} GB" for o, m in SHAPE_CONFIGS) if IS_FLEX else "fixed size"
     log(f"Region {OCI_CONFIG['region']} | {SHAPE} | trying: {sizes}")
 
     deadline = time.time() + RUN_MINUTES * 60
@@ -277,7 +281,7 @@ def run():
         limit_hits = 0
 
         for ocpus, mem in SHAPE_CONFIGS:
-            size = f"{ocpus:g} OCPU/{mem:g} GB"
+            size = f"{ocpus:g} OCPU/{mem:g} GB" if IS_FLEX else "fixed size"
             details = oci.core.models.LaunchInstanceDetails(
                 compartment_id=COMPARTMENT,
                 availability_domain=ad,
@@ -285,7 +289,7 @@ def run():
                 shape=SHAPE,
                 shape_config=oci.core.models.LaunchInstanceShapeConfigDetails(
                     ocpus=ocpus, memory_in_gbs=mem
-                ),
+                ) if IS_FLEX else None,
                 source_details=oci.core.models.InstanceSourceViaImageDetails(
                     image_id=image_id, boot_volume_size_in_gbs=BOOT_VOLUME_GB
                 ),

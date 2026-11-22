@@ -54,6 +54,7 @@ jobs:
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           # --- optional tuning (not secret, visible in logs) ---
           OCI_REGION: ${{ vars.OCI_REGION }}
+          SHAPE: ${{ vars.SHAPE }}
           SHAPE_CONFIGS: ${{ vars.SHAPE_CONFIGS }}
           BOOT_VOLUME_GB: ${{ vars.BOOT_VOLUME_GB }}
           DISPLAY_NAME: ${{ vars.DISPLAY_NAME }}

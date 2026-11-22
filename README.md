@@ -79,7 +79,8 @@ Optional **Variables** (same page, *Variables* tab). These are not secret and ar
 | Variable | Default | Meaning |
 |---|---|---|
 | `OCI_REGION` | `ap-mumbai-1` | your home region, e.g. `ap-hyderabad-1`, `eu-frankfurt-1` |
-| `SHAPE_CONFIGS` | `4:24,2:12,1:6` | `OCPU:RAM_GB` sizes, tried in order |
+| `SHAPE` | `VM.Standard.A1.Flex` | instance shape; `VM.Standard.E2.1.Micro` (free AMD) is handy for a test run |
+| `SHAPE_CONFIGS` | `4:24,2:12,1:6` | `OCPU:RAM_GB` sizes, tried in order (Flex shapes only) |
 | `BOOT_VOLUME_GB` | `100` | boot disk size (Always Free total is 200 GB) |
 | `DISPLAY_NAME` | `free-arm-server` | instance name |
 | `RUN_MINUTES` | `13` | how long one run keeps retrying |
