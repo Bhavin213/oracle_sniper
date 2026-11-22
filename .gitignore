@@ -1,0 +1,25 @@
+# Never commit keys, credentials or local config
+*.pem
+*.key
+*.ppk
+id_rsa*
+id_ed25519*
+oci_api_key*
+.oci/
+config
+.env
+.env.*
+*.secret
+secrets*.txt
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

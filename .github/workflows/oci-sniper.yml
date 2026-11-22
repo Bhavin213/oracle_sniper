@@ -1,0 +1,68 @@
+name: OCI A1 Sniper
+
+# Safe for public repos:
+#  - every account-specific value is a SECRET (secrets are masked in logs, vars are not)
+#  - no pull_request trigger, so forks can never get the secrets
+#  - the script redacts OCIDs / IPs / emails from everything it prints
+
+on:
+  schedule:
+    # Every 15 min. GitHub cron is best-effort and can start a few minutes late.
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write # lets the job disable this workflow after success
+
+concurrency:
+  group: oci-sniper
+  cancel-in-progress: false
+
+jobs:
+  snipe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Try to launch instance
+        id: snipe
+        env:
+          # --- secrets (account specific, never visible in logs) ---
+          OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
+          OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+          OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+          OCI_KEY_PASSPHRASE: ${{ secrets.OCI_KEY_PASSPHRASE }}
+          OCI_COMPARTMENT_OCID: ${{ secrets.OCI_COMPARTMENT_OCID }}
+          OCI_SUBNET_OCID: ${{ secrets.OCI_SUBNET_OCID }}
+          OCI_IMAGE_OCID: ${{ secrets.OCI_IMAGE_OCID }}
+          OCI_AVAILABILITY_DOMAIN: ${{ secrets.OCI_AVAILABILITY_DOMAIN }}
+          SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          # --- optional tuning (not secret, visible in logs) ---
+          OCI_REGION: ${{ vars.OCI_REGION }}
+          SHAPE_CONFIGS: ${{ vars.SHAPE_CONFIGS }}
+          BOOT_VOLUME_GB: ${{ vars.BOOT_VOLUME_GB }}
+          DISPLAY_NAME: ${{ vars.DISPLAY_NAME }}
+          RUN_MINUTES: ${{ vars.RUN_MINUTES }}
+          RETRY_INTERVAL_SECONDS: ${{ vars.RETRY_INTERVAL_SECONDS }}
+        run: python oracle_sniper.py
+
+      - name: Disable this workflow (instance obtained)
+        if: steps.snipe.outputs.done == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow disable oci-sniper.yml --repo "${{ github.repository }}"
