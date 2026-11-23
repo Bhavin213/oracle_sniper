@@ -80,7 +80,7 @@ def env(name, default=None, required=False):
 
 
 def parse_shapes(raw):
-    """'4:24,2:12' -> [(4.0, 24.0), (2.0, 12.0)]"""
+    """'2:12,1:6' -> [(2.0, 12.0), (1.0, 6.0)]"""
     shapes = []
     try:
         for part in raw.split(","):
@@ -88,7 +88,7 @@ def parse_shapes(raw):
                 ocpus, mem = part.strip().split(":")
                 shapes.append((float(ocpus), float(mem)))
     except ValueError:
-        fail("SHAPE_CONFIGS must look like '4:24,2:12,1:6'")
+        fail("SHAPE_CONFIGS must look like '2:12,1:6'")
     if not shapes:
         fail("SHAPE_CONFIGS is empty")
     return shapes
@@ -117,7 +117,7 @@ AVAILABILITY_DOMAIN = env("OCI_AVAILABILITY_DOMAIN")  # auto-detected if empty
 
 SHAPE = env("SHAPE", "VM.Standard.A1.Flex")
 # Tried in order on every attempt: biggest free size first, then smaller ones.
-SHAPE_CONFIGS = parse_shapes(env("SHAPE_CONFIGS", "4:24,2:12,1:6"))
+SHAPE_CONFIGS = parse_shapes(env("SHAPE_CONFIGS", "2:12,1:6"))
 # Fixed shapes (e.g. VM.Standard.E2.1.Micro) take no size; try them once per attempt.
 IS_FLEX = SHAPE.endswith(".Flex")
 if not IS_FLEX:

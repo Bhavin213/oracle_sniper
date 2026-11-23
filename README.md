@@ -1,6 +1,6 @@
 # OCI Free ARM Instance Sniper
 
-Oracle Cloud's **Always Free ARM instance** (`VM.Standard.A1.Flex`, up to 4 OCPU / 24 GB RAM)
+Oracle Cloud's **Always Free ARM instance** (`VM.Standard.A1.Flex`, up to 2 OCPU / 12 GB RAM)
 is often unavailable in popular regions such as Mumbai, Hyderabad, Frankfurt or Ashburn,
 failing with **"Out of host capacity"**.
 
@@ -18,7 +18,7 @@ details. After success the workflow **disables itself**.
 
 1. Checks whether an instance with the same name already exists (if so, it stops).
 2. Auto-detects the availability domain, a public subnet and the latest Ubuntu 24.04 ARM image.
-3. Tries the configured sizes in order, by default `4 OCPU/24 GB` → `2/12` → `1/6`.
+3. Tries the configured sizes in order, by default `2 OCPU/12 GB` → `1/6`.
 4. On "out of capacity" it waits 60 s and retries; on `429 TooManyRequests` it backs off 3x longer.
 5. On success it waits until the instance is `RUNNING`, sends the public IP and OCID **by email
    only**, and disables the workflow.
@@ -80,7 +80,7 @@ Optional **Variables** (same page, *Variables* tab). These are not secret and ar
 |---|---|---|
 | `OCI_REGION` | `ap-mumbai-1` | your home region, e.g. `ap-hyderabad-1`, `eu-frankfurt-1` |
 | `SHAPE` | `VM.Standard.A1.Flex` | instance shape; `VM.Standard.E2.1.Micro` (free AMD) is handy for a test run |
-| `SHAPE_CONFIGS` | `4:24,2:12,1:6` | `OCPU:RAM_GB` sizes, tried in order (Flex shapes only) |
+| `SHAPE_CONFIGS` | `2:12,1:6` | `OCPU:RAM_GB` sizes, tried in order (Flex shapes only) |
 | `BOOT_VOLUME_GB` | `100` | boot disk size (Always Free total is 200 GB) |
 | `DISPLAY_NAME` | `free-arm-server` | instance name |
 | `RUN_MINUTES` | `13` | how long one run keeps retrying |
@@ -90,8 +90,8 @@ Optional **Variables** (same page, *Variables* tab). These are not secret and ar
 **Actions → OCI A1 Sniper → Run workflow.** The log looks like this:
 ```
 [10:01:12] Using image: Canonical-Ubuntu-24.04-aarch64-...
-[10:01:13] Region ap-mumbai-1 | VM.Standard.A1.Flex | trying: 4 OCPU/24 GB, 2 OCPU/12 GB, 1 OCPU/6 GB
-[10:01:14] #1 4 OCPU/24 GB: out of capacity
+[10:01:13] Region ap-mumbai-1 | VM.Standard.A1.Flex | trying: 2 OCPU/12 GB, 1 OCPU/6 GB
+[10:01:14] #1 2 OCPU/12 GB: out of capacity
 ```
 After that the schedule keeps it running. When you get the email, connect with:
 ```bash
@@ -121,7 +121,7 @@ ssh -i oci_ssh ubuntu@<PUBLIC_IP>
 ## Tips
 
 - **Upgrading to Pay As You Go** is widely reported to make A1 capacity much easier to get. You are
-  not charged while you stay within the Always Free limits (A1: 4 OCPU / 24 GB total; 200 GB block
+  not charged while you stay within the Always Free limits (A1: 2 OCPU / 12 GB total since mid-2026; 200 GB block
   storage), but set up a **budget alert** (Billing → Budgets) just in case.
 - If you only got a smaller size such as `1:6`, you can create a second instance with the remaining
   free quota: change `DISPLAY_NAME` and re-enable the workflow.
