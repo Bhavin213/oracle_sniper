@@ -107,6 +107,9 @@ if env("OCI_KEY_PASSPHRASE"):
 
 COMPARTMENT = env("OCI_COMPARTMENT_OCID", TENANCY)
 SSH_PUBLIC_KEY = env("SSH_PUBLIC_KEY", required=True)
+if "PRIVATE KEY" in SSH_PUBLIC_KEY or not SSH_PUBLIC_KEY.startswith(("ssh-", "ecdsa-")):
+    fail("SSH_PUBLIC_KEY must be the contents of your .pub file (starts with 'ssh-rsa'). "
+         "It looks like a private key was pasted - never use the private key here.")
 
 SUBNET_OCID = env("OCI_SUBNET_OCID")                  # auto-detected if empty
 IMAGE_OCID = env("OCI_IMAGE_OCID")                    # auto-detected if empty
@@ -202,11 +205,23 @@ def pick_subnet(network):
         network.list_subnets, compartment_id=COMPARTMENT, lifecycle_state="AVAILABLE"
     ).data
     public = [s for s in subnets if not s.prohibit_public_ip_on_vnic]
-    if not public:
-        fail("No public subnet found. In the OCI console: Networking > Virtual Cloud "
-             "Networks > Start VCN Wizard > 'Create VCN with Internet Connectivity'.")
-    log(f"Public subnet found ({len(public)} available, using the first).")
-    return public[0].id
+    # A public subnet is only reachable if its route table points at an internet gateway.
+    usable = [s for s in public if has_internet_route(network, s.route_table_id)]
+    if not usable:
+        fail("No public subnet with an internet gateway found. In the OCI console: "
+             "Networking > Virtual Cloud Networks > Start VCN Wizard > "
+             "'Create VCN with Internet Connectivity'.")
+    log(f"Internet-connected public subnet found ({len(usable)} available, using the first).")
+    return usable[0].id
+
+
+def has_internet_route(network, route_table_id):
+    try:
+        rules = network.get_route_table(route_table_id).data.route_rules or []
+    except oci.exceptions.ServiceError:
+        return False
+    return any(r.network_entity_id and r.network_entity_id.startswith("ocid1.internetgateway")
+               and r.destination == "0.0.0.0/0" for r in rules)
 
 
 def pick_image(compute):
