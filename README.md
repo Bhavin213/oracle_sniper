@@ -83,7 +83,7 @@ Optional **Variables** (same page, *Variables* tab). These are not secret and ar
 | `SHAPE_CONFIGS` | `2:12,1:6` | `OCPU:RAM_GB` sizes, tried in order (Flex shapes only) |
 | `BOOT_VOLUME_GB` | `100` | boot disk size (Always Free total is 200 GB) |
 | `DISPLAY_NAME` | `free-arm-server` | instance name |
-| `RUN_MINUTES` | `13` | how long one run keeps retrying |
+| `RUN_MINUTES` | `25` | how long one run keeps retrying (keep below the workflow `timeout-minutes: 35`) |
 | `RETRY_INTERVAL_SECONDS` | `60` | delay between attempts (don't go lower) |
 
 ### 7. Run it

@@ -128,7 +128,7 @@ OS_NAME = env("OS_NAME", "Canonical Ubuntu")
 OS_VERSION = env("OS_VERSION", "24.04")
 
 RETRY_INTERVAL = int(env("RETRY_INTERVAL_SECONDS", "60"))
-RUN_MINUTES = float(env("RUN_MINUTES", "13"))  # how long one run keeps trying
+RUN_MINUTES = float(env("RUN_MINUTES", "25"))  # how long one run keeps trying
 
 SMTP_HOST = env("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(env("SMTP_PORT", "465"))
