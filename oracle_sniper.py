@@ -117,7 +117,7 @@ AVAILABILITY_DOMAIN = env("OCI_AVAILABILITY_DOMAIN")  # auto-detected if empty
 
 SHAPE = env("SHAPE", "VM.Standard.A1.Flex")
 # Tried in order on every attempt: biggest free size first, then smaller ones.
-SHAPE_CONFIGS = parse_shapes(env("SHAPE_CONFIGS", "2:12,1:6"))
+SHAPE_CONFIGS = parse_shapes(env("SHAPE_CONFIGS", "4:24,2:12,1:6"))
 # Fixed shapes (e.g. VM.Standard.E2.1.Micro) take no size; try them once per attempt.
 IS_FLEX = SHAPE.endswith(".Flex")
 if not IS_FLEX:
